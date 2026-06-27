@@ -56,7 +56,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    console.error('Text-to-image API error:', err.message);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    console.error('Text-to-image API error:', err);
+    return NextResponse.json({ 
+      error: err.message || 'Internal Server Error',
+      cause: err.cause?.message || String(err.cause)
+    }, { status: 500 });
   }
 }

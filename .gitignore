@@ -5,3 +5,5 @@ out/
 .env
 testsprite_tests/tmp/
 .DS_Store
+
+testsprite_tests\tmp\config.json
