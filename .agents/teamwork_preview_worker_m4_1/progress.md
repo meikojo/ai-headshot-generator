@@ -1,0 +1,3 @@
+- **Files modified**: Created 8 `.spec.ts` files in `d:/ai-headshot-generator/e2e/tier3/`.
+- **Build status**: N/A (Test syntax looks correct, npx command skipped).
+- **Pending issues**: None.

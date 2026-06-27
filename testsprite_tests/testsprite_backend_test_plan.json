@@ -1,0 +1,22 @@
+[
+  {
+    "id": "TC001",
+    "title": "post api remove background with valid image",
+    "description": "Test the POST /api/remove-background endpoint by sending a valid image file. Verify that the response status is 200 and the returned content is a PNG image with the background removed."
+  },
+  {
+    "id": "TC002",
+    "title": "post api remove background with non image file",
+    "description": "Test the POST /api/remove-background endpoint by sending a non-image file. Verify that the response status is a 4xx error and the error message indicates an upload type validation error."
+  },
+  {
+    "id": "TC003",
+    "title": "post api replace background with valid image and prompt",
+    "description": "Test the POST /api/replace-background endpoint by sending a valid image file along with a valid prompt string. Verify that the response status is 200 and the returned content is a PNG image with the new background composited."
+  },
+  {
+    "id": "TC004",
+    "title": "post api replace background with missing prompt or image",
+    "description": "Test the POST /api/replace-background endpoint by sending requests missing either the image file or the prompt string. Verify that the response status is a 4xx error and the error message indicates required-field validation feedback."
+  }
+]
