@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
         .png()
         .toBuffer();
     } catch (fetchErr: any) {
-      console.warn('Hugging Face API remove-background failed, using fallback (original image):', fetchErr.message);
-      resultBuffer = imageBuffer;
+      console.error('Hugging Face API remove-background failed:', fetchErr.message);
+      throw fetchErr;
     }
 
     return new NextResponse(new Uint8Array(resultBuffer), {

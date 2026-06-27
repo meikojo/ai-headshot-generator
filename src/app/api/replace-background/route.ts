@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
         .png()
         .toBuffer();
     } catch (fgErr: any) {
-      console.warn('Foreground extraction failed, using fallback:', fgErr.message);
-      fgBuffer = imageBuffer;
+      console.error('Foreground extraction failed:', fgErr.message);
+      throw fgErr;
     }
 
     // 2. Generate a background image by calling the Hugging Face Inference API
@@ -96,22 +96,8 @@ export async function POST(request: NextRequest) {
 
       bgBuffer = Buffer.from(await bgRes.arrayBuffer());
     } catch (bgErr: any) {
-      console.warn('Background generation failed, using fallback:', bgErr.message);
-      const fgSharp = sharp(fgBuffer);
-      const fgMetadata = await fgSharp.metadata();
-      const fgWidth = fgMetadata.width || 1024;
-      const fgHeight = fgMetadata.height || 1024;
-      
-      bgBuffer = await sharp({
-        create: {
-          width: fgWidth,
-          height: fgHeight,
-          channels: 3,
-          background: { r: 240, g: 240, b: 240 }
-        }
-      })
-      .png()
-      .toBuffer();
+      console.error('Background generation failed:', bgErr.message);
+      throw bgErr;
     }
 
     // 3. Use sharp to resize the background to match foreground and composite them

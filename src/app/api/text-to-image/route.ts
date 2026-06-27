@@ -56,29 +56,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    console.warn('Text-to-image API error, returning fallback placeholder:', err.message);
-    
-    // Offline Try-Catch Fallback
-    try {
-      const fallbackBuffer = await sharp({
-        create: {
-          width,
-          height,
-          channels: 3,
-          background: { r: 100, g: 150, b: 200 }
-        }
-      })
-      .jpeg()
-      .toBuffer();
-
-      return new NextResponse(new Uint8Array(fallbackBuffer), {
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'Content-Disposition': 'attachment; filename="generated.jpg"',
-        },
-      });
-    } catch (fallbackErr: any) {
-      return NextResponse.json({ error: err.message || 'Generation failed' }, { status: 500 });
-    }
+    console.error('Text-to-image API error:', err.message);
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -125,14 +125,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    console.warn('Uncrop API error, returning fallback padded image:', err.message);
-
-    // Offline Try-Catch Fallback: return the padded/extended image buffer computed offline
-    return new NextResponse(new Uint8Array(extendedImageBuffer), {
-      headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': 'attachment; filename="uncropped.png"',
-      },
-    });
+    console.error('Uncrop API error:', err.message);
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -62,14 +62,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    console.warn('Reimagine API error, returning fallback original image:', err.message);
-
-    // Offline Try-Catch Fallback: return original image buffer
-    return new NextResponse(new Uint8Array(imageBuffer), {
-      headers: {
-        'Content-Type': imageFile.type || 'image/jpeg',
-        'Content-Disposition': 'attachment; filename="reimagined.jpg"',
-      },
-    });
+    console.error('Reimagine API error:', err.message);
+    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
   }
 }
