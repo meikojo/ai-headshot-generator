@@ -7,12 +7,28 @@ export async function POST(request: NextRequest) {
   const ip = extractIP(request);
   if (!(await checkRateLimit(ip))) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
-  const formData = await request.formData();
-  const imageFile = formData.get('image') as File;
-  const maskFile = formData.get('mask') as File;
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+  }
 
-  if (!imageFile || !maskFile) return NextResponse.json({ error: 'Missing image or mask' }, { status: 400 });
-  if (imageFile.size > 10 * 1024 * 1024) return NextResponse.json({ error: 'File too large' }, { status: 413 });
+  const imageFile = formData.get('image');
+  const maskFile = formData.get('mask');
+
+  if (!imageFile || !(imageFile instanceof File) || !maskFile || !(maskFile instanceof File)) {
+    return NextResponse.json({ error: 'Missing or invalid image or mask file' }, { status: 400 });
+  }
+
+  if (imageFile.size >= 10 * 1024 * 1024 || maskFile.size >= 10 * 1024 * 1024) {
+    return NextResponse.json({ error: 'File size must be under 10MB' }, { status: 400 });
+  }
+
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedMimes.includes(imageFile.type) || !allowedMimes.includes(maskFile.type)) {
+    return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed' }, { status: 400 });
+  }
 
   let imageBuffer: Buffer;
   let maskBuffer: Buffer;

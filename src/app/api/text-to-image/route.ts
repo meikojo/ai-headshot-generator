@@ -8,7 +8,12 @@ export async function POST(request: NextRequest) {
   const ip = extractIP(request);
   if (!(await checkRateLimit(ip))) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   
-  const body = await request.json();
+  let body: any;
+  try {
+    body = await request.json();
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
   const { prompt } = body;
   if (!prompt || typeof prompt !== 'string') return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
   if (prompt.length > 1000) return NextResponse.json({ error: 'Prompt too long' }, { status: 400 });

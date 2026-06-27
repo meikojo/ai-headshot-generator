@@ -12,11 +12,14 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const imageFile = formData.get('image') as File;
+    const imageFile = formData.get('image');
     const prompt = formData.get('prompt') as string;
 
-    if (!imageFile || !prompt) {
+    if (!imageFile || !(imageFile instanceof File) || !prompt) {
       return NextResponse.json({ error: 'Missing image or prompt' }, { status: 400 });
+    }
+    if (imageFile.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Image size exceeds 10MB limit' }, { status: 400 });
     }
     if (!imageFile.type.startsWith('image/')) {
       return NextResponse.json({ error: 'Invalid file type. Must be an image.' }, { status: 400 });
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
 
       // Apply mask as alpha channel on the original image to get transparent foreground
       const { data, info } = await sharp(maskBuffer)
-        .ensureAlpha()
+        .grayscale()
         .raw()
         .toBuffer({ resolveWithObject: true });
 
@@ -77,6 +80,7 @@ export async function POST(request: NextRequest) {
         guidance_scale: guidanceScale,
         negative_prompt: negativePrompt,
         width: widthSetting,
+        height: heightSetting,
       }
     };
 

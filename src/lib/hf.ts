@@ -1,10 +1,28 @@
 import axios from 'axios';
 
+export interface HfSuccessResponse {
+  ok: true;
+  status: number;
+  headers: Headers;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+  text: () => Promise<string>;
+}
+
+export interface HfErrorResponse {
+  ok: false;
+  status: number;
+  headers?: undefined;
+  arrayBuffer?: undefined;
+  text: () => Promise<string>;
+}
+
+export type HfResponse = HfSuccessResponse | HfErrorResponse;
+
 /**
  * A robust fetcher for Hugging Face APIs that bypasses Next.js 14 / Node 18
  * fetch() IPv6 DNS resolution bugs on Vercel by using Axios (which uses standard http/https).
  */
-export async function hfFetch(url: string, options: { method?: string, headers?: Record<string, string>, body?: any }) {
+export async function hfFetch(url: string, options: { method?: string, headers?: Record<string, string>, body?: any }): Promise<HfResponse> {
   try {
     const response = await axios({
       method: options.method || 'GET',
@@ -30,6 +48,8 @@ export async function hfFetch(url: string, options: { method?: string, headers?:
       return {
         ok: false,
         status: error.response.status,
+        headers: undefined,
+        arrayBuffer: undefined,
         text: async () => Buffer.from(error.response.data).toString('utf-8')
       };
     }
@@ -37,3 +57,4 @@ export async function hfFetch(url: string, options: { method?: string, headers?:
     throw error;
   }
 }
+

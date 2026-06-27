@@ -8,15 +8,45 @@ export async function POST(request: NextRequest) {
   const ip = extractIP(request);
   if (!(await checkRateLimit(ip))) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
-  const formData = await request.formData();
-  const imageFile = formData.get('image') as File;
-  if (!imageFile) return NextResponse.json({ error: 'No image' }, { status: 400 });
-  if (imageFile.size > 10 * 1024 * 1024) return NextResponse.json({ error: 'File too large' }, { status: 413 });
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+  }
 
-  const left = formData.get('left') as string || '256';
-  const right = formData.get('right') as string || '256';
-  const up = formData.get('up') as string || '128';
-  const down = formData.get('down') as string || '128';
+  const imageFile = formData.get('image');
+  if (!imageFile || !(imageFile instanceof File)) {
+    return NextResponse.json({ error: 'Missing or invalid image file' }, { status: 400 });
+  }
+  if (imageFile.size >= 10 * 1024 * 1024) {
+    return NextResponse.json({ error: 'File size must be under 10MB' }, { status: 400 });
+  }
+
+  let leftPad: number;
+  let rightPad: number;
+  let topPad: number;
+  let bottomPad: number;
+
+  try {
+    const parseParam = (key: string, defaultVal: number) => {
+      const val = formData.get(key);
+      if (val === null || val === undefined || val === '') return defaultVal;
+      const str = String(val);
+      if (!/^\d+$/.test(str)) {
+        throw new Error(`${key} must be an integer`);
+      }
+      const parsed = parseInt(str, 10);
+      return Math.max(0, Math.min(1024, parsed));
+    };
+
+    leftPad = parseParam('left', 256);
+    rightPad = parseParam('right', 256);
+    topPad = parseParam('up', 128);
+    bottomPad = parseParam('down', 128);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 400 });
+  }
 
   let imageBuffer: Buffer;
   let extendedImageBuffer: Buffer;
@@ -24,11 +54,6 @@ export async function POST(request: NextRequest) {
 
   try {
     imageBuffer = Buffer.from(await imageFile.arrayBuffer());
-    
-    const topPad = parseInt(up, 10) || 0;
-    const bottomPad = parseInt(down, 10) || 0;
-    const leftPad = parseInt(left, 10) || 0;
-    const rightPad = parseInt(right, 10) || 0;
 
     const image = sharp(imageBuffer);
     const metadata = await image.metadata();

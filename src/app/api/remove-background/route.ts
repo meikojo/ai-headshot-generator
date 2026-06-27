@@ -12,9 +12,12 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const imageFile = formData.get('image') as File;
-    if (!imageFile) {
+    const imageFile = formData.get('image');
+    if (!imageFile || !(imageFile instanceof File)) {
       return NextResponse.json({ error: 'Missing image' }, { status: 400 });
+    }
+    if (imageFile.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: 'Image size exceeds 10MB limit' }, { status: 400 });
     }
     if (!imageFile.type.startsWith('image/')) {
       return NextResponse.json({ error: 'Invalid file type. Must be an image.' }, { status: 400 });
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
 
       // Step 2: Apply mask as alpha channel to original image using sharp
       const { data, info } = await sharp(maskBuffer)
-        .ensureAlpha()
+        .grayscale()
         .raw()
         .toBuffer({ resolveWithObject: true });
 

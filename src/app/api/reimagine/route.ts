@@ -7,10 +7,26 @@ export async function POST(request: NextRequest) {
   const ip = extractIP(request);
   if (!(await checkRateLimit(ip))) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
-  const formData = await request.formData();
-  const imageFile = formData.get('image') as File;
-  if (!imageFile) return NextResponse.json({ error: 'No image' }, { status: 400 });
-  if (imageFile.size > 10 * 1024 * 1024) return NextResponse.json({ error: 'File too large' }, { status: 413 });
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+  }
+
+  const imageFile = formData.get('image');
+  if (!imageFile || !(imageFile instanceof File)) {
+    return NextResponse.json({ error: 'Missing or invalid image file' }, { status: 400 });
+  }
+
+  if (imageFile.size >= 10 * 1024 * 1024) {
+    return NextResponse.json({ error: 'File size must be under 10MB' }, { status: 400 });
+  }
+
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedMimes.includes(imageFile.type)) {
+    return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed' }, { status: 400 });
+  }
 
   let imageBuffer: Buffer;
   try {
