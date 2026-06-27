@@ -199,6 +199,7 @@ export default function HomePage() {
             {['Privacy', 'Terms', 'Contact'].map(l => (
               <Link key={l} href="#" className="text-muted hover:text-text-primary text-sm transition-colors">{l}</Link>
             ))}
+            <Link href="/admin" className="text-muted hover:text-text-primary text-sm transition-colors">Admin</Link>
           </div>
         </div>
       </footer>

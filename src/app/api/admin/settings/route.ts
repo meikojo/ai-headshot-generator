@@ -4,7 +4,7 @@ import { getAppSettings, updateAppSetting, AppSettings } from '@/lib/settings';
 // A simple admin password check
 function isAuthorized(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
-  const expectedPassword = process.env.ADMIN_PASSWORD;
+  const expectedPassword = process.env.ADMIN_PASSWORD || (process.env.NODE_ENV !== 'production' ? 'admin123' : null);
   
   if (!expectedPassword) {
     // If no password is set in env, we deny access to be safe
