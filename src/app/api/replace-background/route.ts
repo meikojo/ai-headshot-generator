@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // 1. Get mask from BiRefNet (returns white=foreground, black=background)
     let fgBuffer: Buffer;
     try {
-      const maskRes = await fetch('https://api-inference.huggingface.co/models/ZhengPeng7/BiRefNet', {
+      const maskRes = await fetch('https://router.huggingface.co/hf-inference/models/ZhengPeng7/BiRefNet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${settings.huggingface_api_key}`,
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     let bgBuffer: Buffer;
     try {
       const model = settings.model_text_to_image || 'black-forest-labs/FLUX.1-schnell';
-      const bgRes = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+      const bgRes = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${settings.huggingface_api_key}`,

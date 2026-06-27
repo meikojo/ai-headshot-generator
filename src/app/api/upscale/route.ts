@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const res = await fetch(`https://api-inference.huggingface.co/models/${settings.model_upscale}`, {
+    const res = await fetch(`https://router.huggingface.co/hf-inference/models/${settings.model_upscale}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${settings.huggingface_api_key}`,
