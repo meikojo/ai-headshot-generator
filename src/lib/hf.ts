@@ -1,4 +1,7 @@
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
+import dns from 'dns';
 
 export interface HfSuccessResponse {
   ok: true;
@@ -18,6 +21,16 @@ export interface HfErrorResponse {
 
 export type HfResponse = HfSuccessResponse | HfErrorResponse;
 
+// Force IPv4 DNS resolution to bypass Vercel/AWS IPv6 ENOTFOUND bugs
+const lookup = (hostname: string, options: dns.LookupOptions, callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void) => {
+  dns.lookup(hostname, { family: 4 }, (err, address, family) => {
+    callback(err, address as any, family);
+  });
+};
+
+const httpAgent = new http.Agent({ lookup });
+const httpsAgent = new https.Agent({ lookup });
+
 /**
  * A robust fetcher for Hugging Face APIs that bypasses Next.js 14 / Node 18
  * fetch() IPv6 DNS resolution bugs on Vercel by using Axios (which uses standard http/https).
@@ -32,6 +45,8 @@ export async function hfFetch(url: string, options: { method?: string, headers?:
       responseType: 'arraybuffer',
       // Disable timeout to let Vercel handle it
       timeout: 0,
+      httpAgent,
+      httpsAgent,
     });
     
     return {
