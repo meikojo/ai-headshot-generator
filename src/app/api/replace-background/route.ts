@@ -28,10 +28,10 @@ export async function POST(request: NextRequest) {
 
     const imageBuffer = Buffer.from(await imageFile.arrayBuffer());
 
-    // 1. Get mask from RMBG-1.4 (returns white=foreground, black=background)
+    // 1. Get mask from BiRefNet (returns white=foreground, black=background)
     let fgBuffer: Buffer;
     try {
-      const maskRes = await fetch('https://api-inference.huggingface.co/models/briaai/RMBG-1.4', {
+      const maskRes = await fetch('https://api-inference.huggingface.co/models/ZhengPeng7/BiRefNet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${settings.huggingface_api_key}`,
