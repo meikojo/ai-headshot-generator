@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractIP, checkRateLimit } from '@/lib/ratelimit';
 import { getAppSettings } from '@/lib/settings';
+import { hfFetch } from '@/lib/hf';
 import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
     let resultBuffer: Buffer;
     try {
       // Step 1: Get mask from BiRefNet (returns white=foreground, black=background)
-      const maskRes = await fetch('https://router.huggingface.co/hf-inference/models/ZhengPeng7/BiRefNet', {
+      const maskRes = await hfFetch('https://api-inference.huggingface.co/models/ZhengPeng7/BiRefNet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${settings.huggingface_api_key}`,

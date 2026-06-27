@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractIP, checkRateLimit } from '@/lib/ratelimit';
 import { getAppSettings } from '@/lib/settings';
+import { hfFetch } from '@/lib/hf';
 
 export async function POST(request: NextRequest) {
   const ip = extractIP(request);
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const res = await fetch(`https://router.huggingface.co/hf-inference/models/${settings.model_upscale}`, {
+    const res = await hfFetch(`https://api-inference.huggingface.co/models/${settings.model_upscale}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${settings.huggingface_api_key}`,

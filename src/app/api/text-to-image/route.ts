@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractIP, checkRateLimit } from '@/lib/ratelimit';
 import { getAppSettings } from '@/lib/settings';
+import { hfFetch } from '@/lib/hf';
 import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const res = await fetch(`https://router.huggingface.co/hf-inference/models/${settings.model_text_to_image}`, {
+    const res = await hfFetch(`https://api-inference.huggingface.co/models/${settings.model_text_to_image}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${settings.huggingface_api_key}`,
@@ -45,7 +46,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (!res.ok) {
-      throw new Error(`Hugging Face API returned status ${res.status}: ${await res.text()}`);
+      const errText = await res.text();
+      throw new Error(`Hugging Face API returned status ${res.status}: ${errText}`, { cause: errText });
     }
 
     const buffer = await res.arrayBuffer();

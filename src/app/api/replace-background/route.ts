@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractIP, checkRateLimit } from '@/lib/ratelimit';
 import { getAppSettings } from '@/lib/settings';
+import { hfFetch } from '@/lib/hf';
 import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
     // 1. Get mask from BiRefNet (returns white=foreground, black=background)
     let fgBuffer: Buffer;
     try {
-      const maskRes = await fetch('https://router.huggingface.co/hf-inference/models/ZhengPeng7/BiRefNet', {
+      // Step 1: Remove Background (Mask Generation)
+      const maskRes = await hfFetch('https://api-inference.huggingface.co/models/ZhengPeng7/BiRefNet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${settings.huggingface_api_key}`,
@@ -40,8 +42,9 @@ export async function POST(request: NextRequest) {
       });
 
       if (!maskRes.ok) {
-        throw new Error(await maskRes.text() || 'Failed to remove background');
+        throw new Error(await maskRes.text() || 'Failed to generate mask');
       }
+
       const maskBuffer = Buffer.from(await maskRes.arrayBuffer());
 
       // Apply mask as alpha channel on the original image to get transparent foreground
@@ -74,14 +77,13 @@ export async function POST(request: NextRequest) {
         guidance_scale: guidanceScale,
         negative_prompt: negativePrompt,
         width: widthSetting,
-        height: heightSetting,
       }
     };
 
     let bgBuffer: Buffer;
     try {
       const model = settings.model_text_to_image || 'black-forest-labs/FLUX.1-schnell';
-      const bgRes = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
+      const bgRes = await hfFetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${settings.huggingface_api_key}`,
